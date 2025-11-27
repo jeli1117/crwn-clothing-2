@@ -4,8 +4,10 @@ import FormInput from '../form-input/form-input.component';
 import {
     signInWithGooglePopup,
     createUserDocumentFromAuth, 
-    signInUserWithEmailAndPassword
+    signInAuthUserWithEmailAndPassword
 } from "../../utils/firebase/firebase.utils";
+
+import './sign-in-form.styles.scss';
 
 const defaultFormFields = {
     email: '',
@@ -20,17 +22,24 @@ const SignInForm = () => {
         setFormFields(defaultFormFields);
     };
 
+    const signInWithGooglle = async () => {
+        const { user } = await signInWithGooglePopup();
+        await createUserDocumentFromAuth(user);
+    };
+
     const handleSubmit = async (event) => {
         event.preventDefault();
 
         try {
-            await signInUserWithEmailAndPassword(email, password);
+            const response = await signInAuthUserWithEmailAndPassword(email, password);
+            console.log(response);
             resetFormFields();
         } catch (error) {
             if (error.code === 'auth/invalid-credential') {
                 alert('Incorrect email or password');
+                return;
             }
-            console.error('user sign-in encountered an error', error);
+            console.error('user sign-in encountered an error', error);            
         };       
     };
 
@@ -41,11 +50,6 @@ const SignInForm = () => {
             ...formFields,
             [name]: value
         });
-    };
-
-    const logGoogleUser = async () => {
-        const { user } = await signInWithGooglePopup();
-        const userDocRef = await createUserDocumentFromAuth(user);
     };
 
     return (
@@ -69,13 +73,16 @@ const SignInForm = () => {
                     name='password'
                     value={password}
                 />
-                <Button type='submit'>
-                    Sign in
-                </Button>
+
+                <div className='buttons-container'>
+                    <Button type='submit'>
+                        Sign in
+                    </Button>
+                    <Button type='button' buttonType='google' buttonHandler={signInWithGooglle}>
+                        Google sign in
+                    </Button>
+                </div>
             </form>
-            <Button buttonType='google' buttonHandler={logGoogleUser}>
-                Sign in with Google Popup
-            </Button>
         </div>
     )
 };
